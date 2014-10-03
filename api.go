@@ -305,6 +305,11 @@ func SetInputMode(mode InputMode) InputMode {
 	return input_mode
 }
 
+// Whether to use extended(256) colors codes (0x38, 0x48 instead of 0x3 & 0x4)
+func SetExtendedColors(on bool) {
+	extended_colors = on
+}
+
 // Sync comes handy when something causes desync between termbox's understanding
 // of a terminal buffer and the reality. Such as a third party process. Sync
 // forces a complete resync between the termbox and a terminal, it may not be

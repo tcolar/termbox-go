@@ -460,9 +460,9 @@ func prepare_diff_messages() {
 }
 
 func cell_to_char_info(c Cell) (attr word, wc [2]wchar) {
-	attr = color_table_fg[c.Fg&0x0F] | color_table_bg[c.Bg&0x0F]
+	attr = color_table_fg[c.Fg&0xFF] | color_table_bg[c.Bg&0xFF]
 	if c.Fg&AttrReverse|c.Bg&AttrReverse != 0 {
-		attr = (attr&0xF0)>>4 | (attr&0x0F)<<4
+		attr = (attr&0xFF00)>>8 | (attr&0xFF)<<8
 	}
 	if c.Fg&AttrBold != 0 {
 		attr |= foreground_intensity

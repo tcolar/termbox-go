@@ -3,6 +3,7 @@
 package termbox
 
 import "unicode/utf8"
+
 import "bytes"
 import "syscall"
 import "unsafe"
@@ -33,7 +34,7 @@ const (
 
 const (
 	coord_invalid = -2
-	attr_invalid  = Attribute(0xFFFF)
+	attr_invalid  = Attribute(0xFFFFFF)
 )
 
 type input_event struct {
@@ -47,29 +48,30 @@ var (
 	funcs []string
 
 	// termbox inner state
-	orig_tios    syscall_Termios
-	back_buffer  cellbuf
-	front_buffer cellbuf
-	termw        int
-	termh        int
-	input_mode   = InputEsc
-	out          *os.File
-	in           int
-	lastfg       = attr_invalid
-	lastbg       = attr_invalid
-	lastx        = coord_invalid
-	lasty        = coord_invalid
-	cursor_x     = cursor_hidden
-	cursor_y     = cursor_hidden
-	foreground   = ColorDefault
-	background   = ColorDefault
-	inbuf        = make([]byte, 0, 64)
-	outbuf       bytes.Buffer
-	sigwinch     = make(chan os.Signal, 1)
-	sigio        = make(chan os.Signal, 1)
-	quit         = make(chan int)
-	input_comm   = make(chan input_event)
-	intbuf       = make([]byte, 0, 16)
+	orig_tios       syscall_Termios
+	back_buffer     cellbuf
+	front_buffer    cellbuf
+	termw           int
+	termh           int
+	input_mode      = InputEsc
+	out             *os.File
+	in              int
+	lastfg          = attr_invalid
+	lastbg          = attr_invalid
+	lastx           = coord_invalid
+	lasty           = coord_invalid
+	cursor_x        = cursor_hidden
+	cursor_y        = cursor_hidden
+	foreground      = ColorDefault
+	background      = ColorDefault
+	inbuf           = make([]byte, 0, 64)
+	outbuf          bytes.Buffer
+	sigwinch        = make(chan os.Signal, 1)
+	sigio           = make(chan os.Signal, 1)
+	quit            = make(chan int)
+	input_comm      = make(chan input_event)
+	intbuf          = make([]byte, 0, 16)
+	extended_colors = false
 )
 
 func write_cursor(x, y int) {
@@ -81,22 +83,38 @@ func write_cursor(x, y int) {
 }
 
 func write_sgr_fg(a Attribute) {
-	outbuf.WriteString("\033[3")
-	outbuf.Write(strconv.AppendUint(intbuf, uint64(a-1), 10))
+	if extended_colors {
+		outbuf.WriteString("\033[38;5;")
+	} else {
+		outbuf.WriteString("\033[3")
+	}
+	outbuf.Write(strconv.AppendUint(intbuf, uint64(a), 10))
 	outbuf.WriteString("m")
 }
 
 func write_sgr_bg(a Attribute) {
-	outbuf.WriteString("\033[4")
-	outbuf.Write(strconv.AppendUint(intbuf, uint64(a-1), 10))
+	if extended_colors {
+		outbuf.WriteString("\033[48;5;")
+	} else {
+		outbuf.WriteString("\033[4")
+	}
+	outbuf.Write(strconv.AppendUint(intbuf, uint64(a), 10))
 	outbuf.WriteString("m")
 }
 
 func write_sgr(fg, bg Attribute) {
-	outbuf.WriteString("\033[3")
-	outbuf.Write(strconv.AppendUint(intbuf, uint64(fg-1), 10))
-	outbuf.WriteString(";4")
-	outbuf.Write(strconv.AppendUint(intbuf, uint64(bg-1), 10))
+	if extended_colors {
+		outbuf.WriteString("\033[38;5;")
+	} else {
+		outbuf.WriteString("\033[3")
+	}
+	outbuf.Write(strconv.AppendUint(intbuf, uint64(fg), 10))
+	if extended_colors {
+		outbuf.WriteString(";48;5;")
+	} else {
+		outbuf.WriteString(";4")
+	}
+	outbuf.Write(strconv.AppendUint(intbuf, uint64(bg), 10))
 	outbuf.WriteString("m")
 }
 
@@ -117,8 +135,8 @@ func get_term_size(fd uintptr) (int, int) {
 func send_attr(fg, bg Attribute) {
 	if fg != lastfg || bg != lastbg {
 		outbuf.WriteString(funcs[t_sgr0])
-		fgcol := fg & 0x0F
-		bgcol := bg & 0x0F
+		fgcol := fg & 0xFF
+		bgcol := bg & 0xFF
 		if fgcol != ColorDefault {
 			if bgcol != ColorDefault {
 				write_sgr(fgcol, bgcol)
