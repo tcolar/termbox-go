@@ -246,6 +246,7 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 			return 6, false
 		}
 		event.Type = EventMouse // KeyEvent by default
+		event.DragOn = buf[3]&64 != 0
 		// wheel up outputs MouseLeft
 		if buf[3] == 0x60 || buf[3] == 0x70 {
 			event.Key = MouseMiddle

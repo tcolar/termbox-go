@@ -305,6 +305,22 @@ func SetInputMode(mode InputMode) InputMode {
 	return input_mode
 }
 
+// Specify whih mouse mode to use
+func SetMouseMode(mode MouseMode) {
+	if mode == MouseOff {
+		input_mode &= 1 ^ InputMouse
+		out.WriteString(funcs[t_exit_mouse])
+	} else {
+		if input_mode&InputMouse != 0 {
+			out.WriteString(funcs[t_exit_mouse])
+		}
+		input_mode &= InputMouse
+		funcs[t_enter_mouse] = fmt.Sprintf("\x1b[?%dh", mode)
+		funcs[t_exit_mouse] = fmt.Sprintf("\x1b[?%dl", mode)
+		out.WriteString(funcs[t_enter_mouse])
+	}
+}
+
 // Whether to use extended(256) colors codes (0x38, 0x48 instead of 0x3 & 0x4)
 func SetExtendedColors(on bool) {
 	extended_colors = on

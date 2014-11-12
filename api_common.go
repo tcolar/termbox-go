@@ -5,6 +5,7 @@ package termbox
 
 type (
 	InputMode int
+	MouseMode int
 	EventType uint8
 	Modifier  uint8
 	Key       uint16
@@ -24,6 +25,7 @@ type Event struct {
 	Err    error     // error in case if input failed
 	MouseX int       // x coord of mouse
 	MouseY int       // y coord of mouse
+	DragOn bool      // Whether the mouse is being dragged
 }
 
 // A cell, single conceptual entity on the screen. The screen is basically a 2d
@@ -158,6 +160,16 @@ const (
 	InputAlt
 	InputMouse
 	InputCurrent InputMode = 0
+)
+
+// Mouse mode
+// See http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#Mouse%20Tracking
+const (
+	MouseOff     MouseMode = 0
+	MouseClick             = 1000
+	MouseMotion            = 1002
+	MouseAll               = 1003
+	MouseCurrent MouseMode = MouseClick
 )
 
 // Event type. See Event.Type field.
