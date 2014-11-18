@@ -70,6 +70,8 @@ const (
 	MouseLeft
 	MouseMiddle
 	MouseRight
+	MouseScrollUp
+	MouseScrollDown
 )
 
 const (

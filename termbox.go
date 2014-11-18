@@ -235,22 +235,27 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 	bufstr := string(buf)
 	// mouse
 	if len(bufstr) >= 6 && strings.HasPrefix(bufstr, "\033[M") {
+		wheel := buf[3]&96 == 96
+		event.DragOn = buf[3]&64 == 64
 		switch buf[3] & 3 {
 		case 0:
-			event.Key = MouseLeft
+			if wheel {
+				event.Key = MouseScrollUp
+			} else {
+				event.Key = MouseLeft
+			}
 		case 1:
-			event.Key = MouseMiddle
+			if wheel {
+				event.Key = MouseScrollDown
+			} else {
+				event.Key = MouseMiddle
+			}
 		case 2:
 			event.Key = MouseRight
 		case 3:
 			return 6, false
 		}
 		event.Type = EventMouse // KeyEvent by default
-		event.DragOn = buf[3]&64 != 0
-		// wheel up outputs MouseLeft
-		if buf[3] == 0x60 || buf[3] == 0x70 {
-			event.Key = MouseMiddle
-		}
 		// the coord is 1,1 for upper left
 		event.MouseX = int(buf[4]) - 1 - 32
 		event.MouseY = int(buf[5]) - 1 - 32
