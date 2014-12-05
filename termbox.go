@@ -276,7 +276,6 @@ func extract_event(event *Event) bool {
 	if len(inbuf) == 0 {
 		return false
 	}
-
 	if inbuf[0] == '\033' {
 		// possible escape sequence
 		n, ok := parse_escape_sequence(event, inbuf)
@@ -285,42 +284,25 @@ func extract_event(event *Event) bool {
 			inbuf = inbuf[:len(inbuf)-n]
 			return ok
 		}
-
-		// it's not escape sequence, then it's Alt or Esc, check input_mode
-		switch {
-		case input_mode&InputEsc != 0:
-			// if we're in escape mode, fill Esc event, pop buffer, return success
-			event.Ch = 0
-			event.Key = KeyEsc
-			event.Mod = 0
-			copy(inbuf, inbuf[1:])
-			inbuf = inbuf[:len(inbuf)-1]
-			return true
-		case input_mode&InputAlt != 0:
-			// if we're in alt mode, set Alt modifier to event and redo parsing
-			event.Mod = ModAlt
-			copy(inbuf, inbuf[1:])
-			inbuf = inbuf[:len(inbuf)-1]
-			return extract_event(event)
-		default:
-			panic("unreachable")
-		}
 	}
 
-	// if we're here, this is not an escape sequence and not an alt sequence
-	// so, it's a FUNCTIONAL KEY or a UNICODE character
+	if len(inbuf) > 1 {
+		if inbuf[0] == 27 {
+			event.Mod = ModAlt
+		}
+		inbuf = inbuf[1:]
+	}
+	k := Key(inbuf[0])
 
-	// first of all check if it's a functional key
-	if Key(inbuf[0]) <= KeySpace || Key(inbuf[0]) == KeyBackspace2 {
-		// fill event, pop buffer, return success
-		event.Ch = 0
+	// scpecial key (esc, del, ctrl combination ...)
+	if k < KeySpace || k == KeyBackspace2 {
 		event.Key = Key(inbuf[0])
+		event.Ch = 0
 		copy(inbuf, inbuf[1:])
 		inbuf = inbuf[:len(inbuf)-1]
 		return true
 	}
-
-	// the only possible option is utf8 rune
+	// rune
 	if r, n := utf8.DecodeRune(inbuf); r != utf8.RuneError {
 		event.Ch = r
 		event.Key = 0
@@ -328,7 +310,6 @@ func extract_event(event *Event) bool {
 		inbuf = inbuf[:len(inbuf)-n]
 		return true
 	}
-
 	return false
 }
 
