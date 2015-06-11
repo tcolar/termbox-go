@@ -167,11 +167,12 @@ const (
 // Mouse mode
 // See http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#Mouse%20Tracking
 const (
-	MouseOff     MouseMode = 0
-	MouseClick             = 1000
-	MouseMotion            = 1002
-	MouseAll               = 1003
-	MouseCurrent MouseMode = MouseClick
+	MouseOff      MouseMode = 0
+	MouseClick              = 1000
+	MouseMotion             = 1002
+	MouseAnyEvent           = 1003
+	MouseSgr                = 1006
+	MouseCurrent  MouseMode = MouseClick
 )
 
 // Event type. See Event.Type field.
