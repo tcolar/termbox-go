@@ -240,50 +240,46 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 	consumed := 0
 	mouse := false
 	if len(bufstr) >= 9 && strings.HasPrefix(bufstr, "\033[<") {
-	 // SGR format : http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Extended-coordinates
+		// SGR format : http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Extended-coordinates
 		consumed = 3
-		mouseDown := true
-		v:=0
-		idx:=0
+		event.MouseBtnState = MouseBtnUp
+		v := 0
+		idx := 0
 		for _, c := range bufstr[3:] {
 			consumed++
 			switch c {
-				case 'm':
-					y=v-1
-					mouseDown = false
-					break
-				case 'M':
-					y=v-1
-					break
-				case ';':
-					if idx == 0 {
-						mode = v
-						idx++
-					} else {
-						x=v-1
-					}
-					v=0
-				default:
-					v = v*10 + int(c)-48
+			case 'm':
+				y = v - 1
+				break
+			case 'M':
+				event.MouseBtnState = MouseBtnDown
+				y = v - 1
+				break
+			case ';':
+				if idx == 0 {
+					mode = v
+					idx++
+				} else {
+					x = v - 1
+				}
+				v = 0
+			default:
+				v = v*10 + int(c) - 48
 			}
-		}
-		if ! mouseDown {
-			// To "unify" with the X10 (mode 1003) which does not send mouseUp events, ignore them.
-			return consumed, false
 		}
 		mouse = true
 	} else if len(bufstr) >= 6 && strings.HasPrefix(bufstr, "\033[M") {
 		// X10 format : http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-X10-compatbility-mode
-		mode = int(buf[3])-32
-		x = int(buf[4])-1-32
-		y = int(buf[5])-1-32
+		mode = int(buf[3]) - 32
+		x = int(buf[4]) - 1 - 32
+		y = int(buf[5]) - 1 - 32
 		if x < 0 {
-			x+=255
+			x += 255
 		}
 		if y < 0 {
-			y+=255
+			y += 255
 		}
-		mouse=true
+		mouse = true
 		consumed = 6
 	}
 	if mouse {

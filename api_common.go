@@ -16,17 +16,23 @@ type (
 // valid if 'Type' is EventKey. The 'Width' and 'Height' fields are valid if
 // 'Type' is EventResize. The 'Err' field is valid if 'Type' is EventError.
 type Event struct {
-	Type   EventType // one of Event* constants
-	Mod    Modifier  // one of Mod* constants or 0
-	Key    Key       // one of Key* constants, invalid if 'Ch' is not 0
-	Ch     rune      // a unicode character
-	Width  int       // width of the screen
-	Height int       // height of the screen
-	Err    error     // error in case if input failed
-	MouseX int       // x coord of mouse
-	MouseY int       // y coord of mouse
-	DragOn bool      // Whether the mouse is being dragged
+	Type          EventType // one of Event* constants
+	Mod           Modifier  // one of Mod* constants or 0
+	Key           Key       // one of Key* constants, invalid if 'Ch' is not 0
+	Ch            rune      // a unicode character
+	Width         int       // width of the screen
+	Height        int       // height of the screen
+	Err           error     // error in case if input failed
+	MouseX        int       // x coord of mouse
+	MouseY        int       // y coord of mouse
+	DragOn        bool      // Whether the mouse is being dragged
+	MouseBtnState byte      // Whether mouse button is up(released) or down(depressed)
 }
+
+const (
+	MouseBtnDown byte = iota
+	MouseBtnUp
+)
 
 // A cell, single conceptual entity on the screen. The screen is basically a 2d
 // array of cells. 'Ch' is a unicode character, 'Fg' and 'Bg' are foreground
