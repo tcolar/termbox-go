@@ -10,6 +10,7 @@ type (
 	Modifier  uint8
 	Key       uint16
 	Attribute uint32
+	KeyMeta   uint8
 )
 
 // This type represents a termbox event. The 'Mod', 'Key' and 'Ch' fields are
@@ -20,6 +21,7 @@ type Event struct {
 	Mod           Modifier  // one of Mod* constants or 0
 	Key           Key       // one of Key* constants, invalid if 'Ch' is not 0
 	Ch            rune      // a unicode character
+	Meta          KeyMeta   // Meta keys status (shft, ctrl, alt ...)
 	Width         int       // width of the screen
 	Height        int       // height of the screen
 	Err           error     // error in case if input failed
@@ -187,4 +189,17 @@ const (
 	EventResize
 	EventMouse
 	EventError
+)
+
+// Meta keys :
+// http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-PC-Style-Function-Keys
+const (
+	Shift KeyMeta = 2
+	Alt
+	AltShift
+	Ctrl
+	CtrlShift
+	AltCtrl
+	AltCtrlShift
+	Meta
 )

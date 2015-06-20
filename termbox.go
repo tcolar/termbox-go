@@ -315,8 +315,52 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 			event.Key = Key(0xFFFF - i)
 			return len(key), true
 		}
+		if parseMetaKey(bufstr, key, event) {
+			event.Key = Key(0xFFFF - i)
+			return len(key) + 2, true
+		}
+		if key[1] == 79 { // 'O'
+			// For some crazy reason xterm sends LeftArrow as [27,79,68]
+			// but Shift+LeftArrow as [27,91,49,59,50,68]
+			// the extra [59, 50] was expected but not the [79] -> [91,49]
+			// Basically seems to be sent in SS3 format in the first case
+			// but in CSI format in the second !
+			// http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-PC-Style-Function-Keys
+			k2 := []byte{key[0]}
+			k2 = append(k2, 91, 49) // '[', '1'
+			k2 = append(k2, key[2:]...)
+			if parseMetaKey(bufstr, string(k2), event) {
+				event.Key = Key(0xFFFF - i)
+				return len(k2) + 2, true
+			}
+		}
 	}
 	return 0, true
+}
+
+// function key modifiers which are parameters appended before the
+// final character of the control sequence.
+func parseMetaKey(bufstr, key string, event *Event) bool {
+	kl := len(key)
+	if len(bufstr) < kl+2 {
+		return false
+	}
+	if !strings.HasPrefix(bufstr, key[:kl-2]) {
+		return false
+	}
+	if bufstr[kl-1] != ';' {
+		return false
+	}
+	if bufstr[kl] < 50 || bufstr[kl] > 57 { // 2 to 9 ASCII
+		return false
+	}
+	if bufstr[kl+1] != key[kl-1] {
+		return false
+	}
+
+	event.Ch = 0
+	event.Meta = KeyMeta(bufstr[kl] - 48)
+	return true
 }
 
 func extract_event(event *Event) bool {
