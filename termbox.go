@@ -345,7 +345,7 @@ func parseMetaKey(bufstr, key string, event *Event) bool {
 	if len(bufstr) < kl+2 {
 		return false
 	}
-	if !strings.HasPrefix(bufstr, key[:kl-2]) {
+	if !strings.HasPrefix(bufstr, key[:kl-1]) {
 		return false
 	}
 	if bufstr[kl-1] != ';' {
