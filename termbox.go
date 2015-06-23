@@ -270,6 +270,7 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 		mouse = true
 	} else if len(bufstr) >= 6 && strings.HasPrefix(bufstr, "\033[M") {
 		// X10 format : http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-X10-compatbility-mode
+		event.MouseBtnState = MouseBtnUp
 		mode = int(buf[3]) - 32
 		x = int(buf[4]) - 1 - 32
 		y = int(buf[5]) - 1 - 32
