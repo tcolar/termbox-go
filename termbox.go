@@ -275,10 +275,10 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 		x = int(buf[4]) - 1 - 32
 		y = int(buf[5]) - 1 - 32
 		if x < 0 {
-			x += 255
+			x += 256
 		}
 		if y < 0 {
-			y += 255
+			y += 256
 		}
 		mouse = true
 		consumed = 6
