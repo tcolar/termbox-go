@@ -194,12 +194,12 @@ const (
 // Meta keys :
 // http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-PC-Style-Function-Keys
 const (
-	Shift KeyMeta = 2
-	Alt
-	AltShift
-	Ctrl
-	CtrlShift
-	AltCtrl
-	AltCtrlShift
-	Meta
+	Shift        KeyMeta = 2
+	Alt                  = 3
+	AltShift             = 4
+	Ctrl                 = 5
+	CtrlShift            = 6
+	AltCtrl              = 7
+	AltCtrlShift         = 8
+	Meta                 = 9
 )
