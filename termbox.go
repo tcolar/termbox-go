@@ -2,15 +2,19 @@
 
 package termbox
 
-import "unicode/utf8"
+import (
+	"bytes"
+	"io"
+	"strconv"
+	"unicode/utf8"
+	"unsafe"
+)
 
-import "bytes"
 import "syscall"
-import "unsafe"
+
 import "strings"
-import "strconv"
+
 import "os"
-import "io"
 
 // private API
 
@@ -239,21 +243,24 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 	y := 0
 	consumed := 0
 	mouse := false
-	if len(bufstr) >= 9 && strings.HasPrefix(bufstr, "\033[<") {
+	if len(bufstr) >= 3 && strings.HasPrefix(bufstr, "\033[<") {
 		// SGR format : http://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Extended-coordinates
 		consumed = 3
 		event.MouseBtnState = MouseBtnUp
 		v := 0
 		idx := 0
+		valid := false
 		for _, c := range bufstr[3:] {
 			consumed++
 			switch c {
 			case 'm':
 				y = v - 1
+				valid = true
 				break
 			case 'M':
 				event.MouseBtnState = MouseBtnDown
 				y = v - 1
+				valid = true
 				break
 			case ';':
 				if idx == 0 {
@@ -266,6 +273,10 @@ func parse_escape_sequence(event *Event, buf []byte) (int, bool) {
 			default:
 				v = v*10 + int(c) - 48
 			}
+		}
+		if !valid {
+			// event seems incomplete, we will try again once we have more data
+			return 0, false
 		}
 		mouse = true
 	} else if len(bufstr) >= 6 && strings.HasPrefix(bufstr, "\033[M") {
@@ -371,6 +382,9 @@ func extract_event(event *Event) bool {
 	if inbuf[0] == '\033' {
 		// possible escape sequence
 		n, ok := parse_escape_sequence(event, inbuf)
+		if !ok {
+			return false
+		}
 		if n != 0 {
 			copy(inbuf, inbuf[n:])
 			inbuf = inbuf[:len(inbuf)-n]
